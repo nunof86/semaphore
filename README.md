@@ -39,4 +39,6 @@ sudo docker run --name semaphore \
 -d public.ecr.aws/semaphore/pro/server:v2.16.47
 ```
 
+After the container start, the Semaphore is available in:
 
+http://<VM_IP>:3000
