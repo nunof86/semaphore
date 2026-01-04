@@ -23,7 +23,7 @@ To replicate this setup it is necessary:
 
 Semaphore is executed localy trough Docker, using SQLite as database to simplify the setup.
 
-Execute the following command:
+Execute the following command (Note: Weak credentials is only for testing purpuse):
 
 
 ```bash
