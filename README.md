@@ -19,7 +19,11 @@ To replicate this setup it is necessary:
   - Git/GitHub
 
 
-# Semaphore Docker Instalation
+## Semaphore Docker Installation
+
+Semaphore is executed localy trough Docker, using SQLite as database to simplify the setup.
+
+Execute the following command:
 
 
 ```bash
@@ -35,4 +39,4 @@ sudo docker run --name semaphore \
 -d public.ecr.aws/semaphore/pro/server:v2.16.47
 ```
 
-# Next
+
