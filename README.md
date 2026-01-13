@@ -12,7 +12,6 @@ To replicate this setup it is necessary:
 - A Linux machine (VM or bare metal)
 - Docker installed
 - Acess to a GitHub repository
-- Acesso a um repositório GitHub
 - Basic knowledge:
   - Ansible
   - Docker
