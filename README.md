@@ -72,4 +72,4 @@ The following elements were configured in Semaphore:
 - Repository: GitHub repository with Ansible playbooks
 - Inventory: SSH inventory pointing to the target VM
 - Key Store: SSH key for authentication
-- Task Template: ANsible template that executes the update playbook
+- Task Template: Ansible template that executes the update playbook
