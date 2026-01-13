@@ -42,3 +42,34 @@ sudo docker run --name semaphore \
 After the container start, the Semaphore is available in:
 
 http://<VM_IP>:3000
+
+
+## Initial Login
+
+Initials Credentials:
+
+- Username: admin
+- Password: Temporario@2024
+
+It is recommended to change the password after first login.
+
+## Ansible Playbooks Repository
+
+The Ansible playbooks are not included in this repository.
+
+Semaphore uses the follow repository:
+
+- https://github.com/nunof86/ansible-playbooks
+
+The Ansible playbooks uses was the follow:
+
+- debian-based/system_administration/teste.yml
+
+## Semaphore Configuration Overview
+
+The following elements were configured in Semaphore:
+
+- Repository: GitHub repository with Ansible playbooks
+- Inventory: SSH inventory pointing to the target VM
+- Key Store: SSH key for authentication
+- Task Template: ANsible template that executes the update playbook
