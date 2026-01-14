@@ -72,3 +72,28 @@ The following elements were configured in Semaphore:
 - Inventory: SSH inventory pointing to the target VM
 - Key Store: SSH key for authentication
 - Task Template: Ansible template that executes the update playbook
+
+### Repository
+
+- Name: Ansible_Playbooks
+- URL: https://github.com/nunof86/ansible-playbooks.git
+- git: HTTPS
+- Main: main
+- Access Key: None
+
+### Key Store
+
+- Key Name: Devops_User
+- Type: SSH Key
+- Username (Optional): devops
+- Private Key: content of the private key file (/home/devops/.ssh/id_ed25519 in this case)
+
+### Inventory
+
+- Name: Servers
+- User_Credentials: Devops_User
+- Type: Static YAML:
+  ```bash
+  [servers]
+  VM_IP ansible_user=devops
+  ```
