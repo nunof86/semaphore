@@ -105,3 +105,17 @@ The following elements were configured in Semaphore:
 - Inventory: Servers
 - Repository: Ansible_Playbooks
 - Variable Group: Empty
+
+```bash
+ansible -i inventories/ssh.ini all -m ping -vv
+
+echo 'devops ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/devops-nopasswd
+sudo chmod 440 /etc/sudoers.d/devops-nopasswd
+sudo visudo -cf /etc/sudoers.d/devops-nopasswd
+
+ansible -i inventories/ssh.ini all -m command -a "whoami" --become -vv
+
+ansible-playbook -i inventories/ssh.ini debian-based/system_administration/teste.yml --become
+
+
+```
