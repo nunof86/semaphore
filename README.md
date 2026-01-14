@@ -97,3 +97,11 @@ The following elements were configured in Semaphore:
   [servers]
   VM_IP ansible_user=devops
   ```
+
+### Task Template
+
+- Name: System_Update
+- Path to playbook file: debian-based/system_administration/system_update.yml
+- Inventory: Servers
+- Repository: Ansible_Playbooks
+- Variable Group: Empty
