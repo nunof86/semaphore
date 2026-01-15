@@ -112,7 +112,7 @@ Before executing any Ansible playbook through Semaphore, the following ckecks mu
 
 These steps ensure that SSH access, privilege escalation, and Ansible configuration are correctly set.
 
-1. SSH Key Authentication to Target VM
+### 1. SSH Key Authentication to Target VM
 
 <strong>Goal</strong>: Ensure the Ansible controller can connect to the target host via SSH without password prompts.
 
@@ -142,7 +142,7 @@ chmod 600 ~/.ssh/authorized_keys
 > **Note:** Even if the controller and target are the same VM (`localhost`-like scenario), SSH key authentication is still required because Ansible uses SSH by default.
 
 
-2. Ansible Can Reach the Inventory Host 
+### 2. Ansible Can Reach the Inventory Host 
 
 > **Note:** Change or create (if didn't exists) the `inventories/ssh.ini` file to match the IP of the Target VM.
 
@@ -171,7 +171,7 @@ If this fails:
 - Confirm SSH works manually (`ssh devops@<TARGET_IP>`)
 - Ensure the correct SSH user is defined
 
-3. Passwordless Sudo Configuration
+### 3. Passwordless Sudo Configuration
 
 <strong>Goal</strong>: Ensure Ansible can escalate privileges without prompting for a sudo password.
 
