@@ -114,7 +114,7 @@ These steps ensure that SSH access, privilege escalation, and Ansible configurat
 
 ### 1. SSH Key Authentication to Target VM
 
-<strong>Goal</strong>: Ensure the Ansible controller can connect to the target host via SSH without password prompts.
+<strong>Goal:</strong> Ensure the Ansible controller can connect to the target host via SSH without password prompts.
 
 <strong>Verify SSH Access</strong>
 
@@ -146,7 +146,7 @@ chmod 600 ~/.ssh/authorized_keys
 
 > **Note:** Change or create (if didn't exists) the `inventories/ssh.ini` file to match the IP of the Target VM.
 
-<strong>Goal</strong>: Verify that Ansible can connect to the inventory hosts using SSH. 
+<strong>Goal:</strong> Verify that Ansible can connect to the inventory hosts using SSH. 
 
 <strong>Test connectivity with Ansible ping</strong>
 
@@ -173,7 +173,7 @@ If this fails:
 
 ### 3. Passwordless Sudo Configuration
 
-<strong>Goal</strong>: Ensure Ansible can escalate privileges without prompting for a sudo password.
+<strong>Goal:</strong> Ensure Ansible can escalate privileges without prompting for a sudo password.
 
 <strong>Configure passwordless sudo</strong>
 
@@ -194,3 +194,49 @@ If this fails:
 - Fix sudo configuration firts to avoid playbook failures
 
 ### 4. Validate Ansible Privilege Escalation
+
+<strong>Goal:</strong> Confirm Ansible can run commands as `root` using `--become`.
+
+<strong>Test sudo with Ansible</strong>
+
+```bash
+ansible -i inventories/ssh.ini all -m command -a "whoami" --become -vv
+```
+
+Expected output:
+
+```bash
+root
+```
+
+If you see:
+
+```bash
+Missing sudo password
+```
+
+Then:
+- Passwordless sudo is not correctly configured
+- Recheck Step 3
+
+### 5. Execute the Ansible Playbook Locally
+
+<strong>Goal:</strong> Ensure the playbook itself works <strong>before running it in Semaphore</strong>.
+
+```bash
+ansible-playbook -i inventories/ssh.ini debian-based/system_administration/update.yml
+```
+
+Expected result:
+- All tasks complete successfully
+- No SSH or sudo errors
+- No unreachable hosts
+
+### Why This Checklist Matters
+
+If <strong>any</strong> of the steps above fail:
+- Semaphore will also fail
+- Semaphore error messags may be misleading
+- Troubleshooting becomes harder
+
+> **Note:** Rule of thumb: <strong>If does not work locally with Ansible, it will not work in Semaphore.</strong>
