@@ -192,3 +192,5 @@ Expected output:
 If this fails:
 - Do <strong>not</strong> continue
 - Fix sudo configuration firts to avoid playbook failures
+
+### 4. Validate Ansible Privilege Escalation
