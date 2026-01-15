@@ -106,16 +106,89 @@ The following elements were configured in Semaphore:
 - Repository: Ansible_Playbooks
 - Variable Group: Empty
 
+## Pre-flight Checklist & Troubleshooting
+
+Before executing any Ansible playbook through Semaphore, the following ckecks must pass successfully on the target environment.
+
+These steps ensure that SSH access, privilege escalation, and Ansible configuration are correctly set.
+
+1. SSH Key Authentication to Target VM
+
+<strong>Goal</strong>: Ensure the Ansible controller can connect to the target host via SSH without password prompts.
+
+<strong>Verify SSH Access</strong>
+
+```bash
+ssh devops@<TARGET_IP>
+```
+
+Expected behavior:
+- login succeeds without asking for a password
+- User is logged in as `devops`
+
+If this fails:
+- Ensure the public SSH key is present in:
+```bash
+/home/devops/.ssh/authorized_keys
+```
+
+- Ensure correct permissions:
+
+```bash
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
+```
+
+> **Note:** Even if the controller and target are the same VM (`localhost`-like scenario), SSH key authentication is still required because Ansible uses SSH by default.
+
+
+2. Ansible Can Reach the Inventory Host 
+
+> **Note:** Change or create (if didn't exists) the `inventories/ssh.ini` file to match the IP of the Target VM.
+
+<strong>Goal</strong>: Verify that Ansible can connect to the inventory hosts using SSH. 
+
+<strong>Test connectivity with Ansible ping</strong>
+
 ```bash
 ansible -i inventories/ssh.ini all -m ping -vv
+```
 
+Expected output:
+
+```bash
+SUCCESS => "pong"
+```
+
+If this fails:
+- Verify the inventory file:
+
+```bash
+[servers]
+<TARGET_IP> ansible_user=devops
+```
+
+- Confirm SSH works manually (`ssh devops@<TARGET_IP>`)
+- Ensure the correct SSH user is defined
+
+3. Passwordless Sudo Configuration
+
+<strong>Goal</strong>: Ensure Ansible can escalate privileges without prompting for a sudo password.
+
+<strong>Configure passwordless sudo</strong>
+
+```bash
 echo 'devops ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/devops-nopasswd
 sudo chmod 440 /etc/sudoers.d/devops-nopasswd
 sudo visudo -cf /etc/sudoers.d/devops-nopasswd
-
-ansible -i inventories/ssh.ini all -m command -a "whoami" --become -vv
-
-ansible-playbook -i inventories/ssh.ini debian-based/system_administration/teste.yml --become
-
-
 ```
+
+Expected output:
+
+```bash
+/etc/sudoers.d/devops-nopasswd: parsed OK
+```
+
+If this fails:
+- Do <strong>not</strong> continue
+- Fix sudo configuration firts to avoid playbook failures
