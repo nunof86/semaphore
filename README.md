@@ -40,7 +40,7 @@ sudo docker run --name semaphore \
 
 After the container start, the Semaphore is available in:
 
-http://<VM_IP>:3000
+http://<TARGET_IP>:3000
 
 
 ## Initial Login
@@ -95,7 +95,7 @@ The following elements were configured in Semaphore:
 - Type: Static YAML:
   ```bash
   [servers]
-  VM_IP ansible_user=devops
+  <TARGET_IP> ansible_user=devops
   ```
 
 ### Task Template
