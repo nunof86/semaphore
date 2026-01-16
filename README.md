@@ -401,28 +401,15 @@ In the Semaphore UI:
 
 ### End-to-End Validation Summary
 
-At this stage, the following flow is fully validated:
+This project implements a **fully automated and validated CI/CD pipeline**.
 
-git commit + push
+The delivery flow is as follows:
 
-↓
+- Source code changes are committed and pushed to GitHub
+- A **GitHub Actions self-hosted runner** is triggered
+- The runner communicates with the **Semaphore API**
+- A **Semaphore task** is executed
+- Infrastructure is configured via **Ansible playbooks**
+- Changes are applied to the **target virtual machine**
 
-GitHub Actions (self-hosted runner)
-
-↓
-
-Semaphore API
-
-↓
-
-Semaphore Task
-
-↓
-
-Ansible Playbook Execution
-
-↓
-
-Target VM
-
-If all steps succeed, the CI/CD pipeline is fully operational.
+✔ All stages have been validated successfully, ensuring a reliable and production-ready CI/CD workflow.
