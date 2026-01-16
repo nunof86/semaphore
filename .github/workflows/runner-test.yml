@@ -1,15 +1,41 @@
-name: Deploy via Semaphore test9
+name: Deploy via Semaphore
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch: {}
 
 jobs:
   trigger:
     runs-on: [self-hosted, Linux, X64]
+
     steps:
-      - name: Create Semaphore task (fail-fast)
+      # 🔎 STEP 1 — DEBUG (temporário)
+      - name: Check Semaphore auth (debug)
+        shell: bash
+        env:
+          SEMAPHORE_URL: ${{ secrets.SEMAPHORE_URL }}
+          SEMAPHORE_TOKEN: ${{ secrets.SEMAPHORE_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          echo "SEMAPHORE_URL=${SEMAPHORE_URL}"
+          echo "SEMAPHORE_TOKEN_LEN=${#SEMAPHORE_TOKEN}"
+
+          code="$(curl -sS -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${SEMAPHORE_TOKEN}" \
+            -H "Accept: application/json" \
+            "${SEMAPHORE_URL}/api/projects")"
+
+          echo "HTTP=${code}"
+          if [[ "${code}" != "200" ]]; then
+            echo "ERROR: Semaphore auth failed"
+            exit 1
+          fi
+
+      # 🚀 STEP 2 — CREATE TASK (normal)
+      - name: Create Semaphore task
+        shell: bash
         env:
           SEMAPHORE_URL: ${{ secrets.SEMAPHORE_URL }}
           SEMAPHORE_TOKEN: ${{ secrets.SEMAPHORE_TOKEN }}
@@ -18,42 +44,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          echo "Checking Semaphore API authentication..."
-          code=$(curl -sS -o /dev/null -w "%{http_code}" \
-            -H "Authorization: Bearer ${SEMAPHORE_TOKEN}" \
-            -H "Accept: application/json" \
-            "${SEMAPHORE_URL}/api/projects")
-
-          if [ "$code" -ne 200 ]; then
-            echo "ERROR: /api/projects returned HTTP=$code"
-            echo "Hint: 401=token/secret wrong; 000=network; 5xx=server"
-            exit 1
-          fi
-
-          echo "Creating task (project=${PROJECT_ID}, template=${TEMPLATE_ID})..."
-          resp_file="$(mktemp)"
-          task_code=$(curl -sS -o "$resp_file" -w "%{http_code}" \
-            -X POST \
+          curl -sS -L -X POST \
             -H "Authorization: Bearer ${SEMAPHORE_TOKEN}" \
             -H "Content-Type: application/json" \
             -H "Accept: application/json" \
             -d "{\"template_id\": ${TEMPLATE_ID}}" \
-            "${SEMAPHORE_URL}/api/project/${PROJECT_ID}/tasks")
-
-          echo "HTTP=$task_code"
-          echo "Response:"
-          cat "$resp_file"
-          echo
-
-          if [ "$task_code" -ne 201 ]; then
-            echo "ERROR: Failed to create task (expected 201)"
-            exit 1
-          fi
-
-          # Optional: extract task id if jq exists
-          if command -v jq >/dev/null 2>&1; then
-            task_id=$(jq -r '.id // empty' < "$resp_file")
-            if [ -n "$task_id" ]; then
-              echo "Task created successfully: id=$task_id"
-            fi
-          fi
+            "${SEMAPHORE_URL}/api/project/${PROJECT_ID}/tasks"
