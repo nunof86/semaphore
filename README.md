@@ -11,7 +11,7 @@ To replicate this setup it is necessary:
 
 - A Linux machine (VM or bare metal)
 - Docker installed
-- Acess to a GitHub repository
+- Access to a GitHub repository
 - Basic knowledge:
   - Ansible
   - Docker
@@ -20,9 +20,9 @@ To replicate this setup it is necessary:
 
 ## Semaphore Docker Installation
 
-Semaphore is executed localy trough Docker, using SQLite as database to simplify the setup.
+Semaphore is executed locally through Docker, using SQLite as a database to simplify the setup.
 
-Execute the following command (Note: Weak credentials is only for testing purpuse):
+Execute the following command (Note: Weak credentials are only for testing purpose):
 
 
 ```bash
@@ -38,14 +38,14 @@ sudo docker run --name semaphore \
 -d public.ecr.aws/semaphore/pro/server:v2.16.47
 ```
 
-After the container start, the Semaphore is available in:
+After the container starts, Semaphore is available in:
 
 http://<TARGET_IP>:3000
 
 
 ## Initial Login
 
-Initials Credentials:
+Initial Credentials:
 
 - Username: admin
 - Password: Temporario@2024
@@ -56,11 +56,11 @@ It is recommended to change the password after first login.
 
 The Ansible playbooks are not included in this repository.
 
-Semaphore uses the follow repository:
+Semaphore uses the following repository:
 
 - https://github.com/nunof86/ansible-playbooks
 
-The Ansible playbooks uses was the follow:
+The Ansible playbook used was the following:
 
 - debian-based/system_administration/teste.yml
 
@@ -108,7 +108,7 @@ The following elements were configured in Semaphore:
 
 ## Pre-flight Checklist & Troubleshooting
 
-Before executing any Ansible playbook through Semaphore, the following ckecks must pass successfully on the target environment.
+Before executing any Ansible playbook through Semaphore, the following checks must pass successfully on the target environment.
 
 These steps ensure that SSH access, privilege escalation, and Ansible configuration are correctly set.
 
@@ -144,7 +144,7 @@ chmod 600 ~/.ssh/authorized_keys
 
 ### 2. Ansible Can Reach the Inventory Host 
 
-> **Note:** Change or create (if didn't exists) the `inventories/ssh.ini` file to match the IP of the Target VM.
+> **Note:** Change or create (if doesn't exists) the `inventories/ssh.ini` file to match the IP of the Target VM.
 
 <strong>Goal:</strong> Verify that Ansible can connect to the inventory hosts using SSH. 
 
@@ -191,7 +191,7 @@ Expected output:
 
 If this fails:
 - Do <strong>not</strong> continue
-- Fix sudo configuration firts to avoid playbook failures
+- Fix sudo configuration first to avoid playbook failures
 
 ### 4. Validate Ansible Privilege Escalation
 
@@ -224,7 +224,7 @@ Then:
 <strong>Goal:</strong> Ensure the playbook itself works <strong>before running it in Semaphore</strong>.
 
 ```bash
-ansible-playbook -i inventories/ssh.ini debian-based/system_administration/system_update.yml.yml
+ansible-playbook -i inventories/ssh.ini debian-based/system_administration/system_update.yml
 ```
 
 Expected result:
@@ -236,14 +236,14 @@ Expected result:
 
 If <strong>any</strong> of the steps above fail:
 - Semaphore will also fail
-- Semaphore error messags may be misleading
+- Semaphore error messages may be misleading
 - Troubleshooting becomes harder
 
 > **Note:** Rule of thumb: <strong>If does not work locally with Ansible, it will not work in Semaphore.</strong>
 
-## CI/CD - Github Actions Triggering Semaphore
+## CI/CD - GitHub Actions Triggering Semaphore
 
-This section configures a self-hosted runner and a Github Actions workflow that triggers a Semaphore task via API.
+This section configures a self-hosted runner and a GitHub Actions workflow that triggers a Semaphore task via API.
 
 ### API Token (Semaphore)
 
@@ -275,7 +275,7 @@ Create the following <strong>Repository Secrets:</strong>
 In GitHub:
 Settings -> Actions -> Runners -> New self-hosted runner
 
-Follow Github's instructions on the VM.
+Follow GitHub's instructions on the VM.
 
 Recommended (service mode):
 
@@ -287,7 +287,7 @@ sudo ./svc.sh status
 
 Runner should appear as <strong>Idle</strong> in Github.
 
-### GitHub Acctions Workflow
+### GitHub Actions Workflow
 
 Create the file:
 
@@ -352,11 +352,11 @@ Semaphore task unreachable -> SSH/sudo not validated locally
 
 ## Final Commit and CI/CD Validation
 
-After completing all the configuration steps (Semaphore, Ansible, SSH, sudo, self-hosted runner and GitHun Actions Workflow), a final commit is required to validate the full CI/CD pipeline.
+After completing all the configuration steps (Semaphore, Ansible, SSH, sudo, self-hosted runner and GitHub Actions Workflow), a final commit is required to validate the full CI/CD pipeline.
 
 ### 1. Commit the Changes
 
-From the repository root deirectory, stage and commit the changes:
+From the repository root directory, stage and commit the changes:
 
 ```
 git add .
@@ -378,7 +378,7 @@ This action automatically triggers the GitHub Actions workflow.
 
 ### 3. Validate GitHub Actions Execution
 
-In the GitHub repositoy:
+In the GitHub repository:
 1. Go to Actions
 2. Open the latest workflow run
 3. Confirm:
