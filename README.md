@@ -404,14 +404,25 @@ In the Semaphore UI:
 At this stage, the following flow is fully validated:
 
 git commit + push
-        ↓
+
+↓
+
 GitHub Actions (self-hosted runner)
-        ↓
+
+↓
+
 Semaphore API
-        ↓
+
+↓
+
 Semaphore Task
-        ↓
+
+↓
+
 Ansible Playbook Execution
-        ↓
+
+↓
+
 Target VM
 
+If all steps succeed, the CI/CD pipeline is fully operational.
