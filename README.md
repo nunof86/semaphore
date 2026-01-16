@@ -287,10 +287,131 @@ sudo ./svc.sh status
 
 Runner should appear as <strong>Idle</strong> in Github.
 
-### Workflow
+### GitHub Acctions Workflow
 
-Create:
+Create the file:
 
 `.github/workflows/semaphore-cd.yml`
 
+#### Workflow content:
+
+```bash
+name: Trigger Semaphore
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: {}
+
+jobs:
+  trigger:
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Trigger Semaphore task
+        shell: bash
+        env:
+          SEMAPHORE_URL: ${{ secrets.SEMAPHORE_URL }}
+          SEMAPHORE_TOKEN: ${{ secrets.SEMAPHORE_TOKEN }}
+          PROJECT_ID: ${{ secrets.SEMAPHORE_PROJECT_ID }}
+          TEMPLATE_ID: ${{ secrets.SEMAPHORE_TEMPLATE_ID }}
+        run: |
+          set -euo pipefail
+
+          echo "Checking Semaphore authentication..."
+          auth_code="$(curl -sS -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${SEMAPHORE_TOKEN}" \
+            -H "Accept: application/json" \
+            "${SEMAPHORE_URL}/api/projects")"
+
+          if [[ "${auth_code}" != "200" ]]; then
+            echo "Semaphore authentication failed"
+            exit 1
+          fi
+
+          echo "Creating Semaphore task..."
+          curl -sS -X POST \
+            -H "Authorization: Bearer ${SEMAPHORE_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "{\"template_id\": ${TEMPLATE_ID}}" \
+            "${SEMAPHORE_URL}/api/project/${PROJECT_ID}/tasks"
+```
+
+Expected result:
+- GitHub Action -> <strong>green (passed)</strong>
+- Semaphore -> new task visible and executed
+- Playbook runs exactly as tested locally
+
+#### Common Failures
+
+401/403 -> Wrong token in GitHub Secrets
+404 -> Wrong URL or missing `http://`
+Runner idle -> Workflow misconfigured
+Semaphore task unreachable -> SSH/sudo not validated locally
+
+
+## Final Commit and CI/CD Validation
+
+After completing all the configuration steps (Semaphore, Ansible, SSH, sudo, self-hosted runner and GitHun Actions Workflow), a final commit is required to validate the full CI/CD pipeline.
+
+### 1. Commit the Changes
+
+From the repository root deirectory, stage and commit the changes:
+
+```
+git add .
+git commit -m "Finalize Semaphore CI/CD setup documentation"
+```
+
+Expected result:
+- A clean commit is created on the `main` branch
+- No Git configuration or identity errors occur
+
+### 2. Push to GitHub
+
+Push the commit to the remote repository:
+
+```bash
+git push origin main
+```
+This action automatically triggers the GitHub Actions workflow.
+
+### 3. Validate GitHub Actions Execution
+
+In the GitHub repositoy:
+1. Go to Actions
+2. Open the latest workflow run
+3. Confirm:
+    - The self-hosted runner is selected
+    - All steps complete successfully (green checkmark)
+
+If the workflow fails:
+- Review the logs in the Trigger Semaphore task step
+- Confirm that all secrets are correctly configured.
+
+### 4. Validate Semaphore Task Execution
+
+In the Semaphore UI:
+1. Open the configured project
+2. Navigate to <strong>Tasks</strong>
+3. Confirm:
+    - A new task was created automatically
+    - Task status is `Success`
+    - The Ansible playbook executed without errors.
+
+### End-to-End Validation Summary
+
+At this stage, the following flow is fully validated:
+
+git commit + push
+        ↓
+GitHub Actions (self-hosted runner)
+        ↓
+Semaphore API
+        ↓
+Semaphore Task
+        ↓
+Ansible Playbook Execution
+        ↓
+Target VM
 
