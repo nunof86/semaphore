@@ -1,4 +1,4 @@
-name: Deploy via Semaphore test3
+name: Deploy via Semaphore test4
 
 on:
   push:
