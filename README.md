@@ -240,3 +240,57 @@ If <strong>any</strong> of the steps above fail:
 - Troubleshooting becomes harder
 
 > **Note:** Rule of thumb: <strong>If does not work locally with Ansible, it will not work in Semaphore.</strong>
+
+## CI/CD - Github Actions Triggering Semaphore
+
+This section configures a self-hosted runner and a Github Actions workflow that triggers a Semaphore task via API.
+
+### API Token (Semaphore)
+
+Create an API token in Semaphore UI (Admin user) and validate it locally:
+
+```bash
+export SEMAPHORE_URL="http://<TARGET_IP>:3000"
+export SEMAPHORE_TOKEN="<TOKEN>"
+
+curl -sS -o /dev/null -w "HTTP=%{http_code}\n" \
+  -H "Authorization: Bearer ${SEMAPHORE_TOKEN}" \
+  -H "Accept: application/json" \
+  "${SEMAPHORE_URL}/api/projects"
+```
+
+Expected:
+- `HTTP=200`
+
+### GitHub Secrets
+
+Create the following <strong>Repository Secrets:</strong>
+- `SEMAPHORE_URL` = `http://<TARGET_IP>:3000`
+- `SEMAPHORE_TOKEN` = Semaphore API token (no quotes)
+- `SEMAPHORE_PROJECT_ID` = `<PROJECT_ID>`
+- `SEMAPHORE_TEMPLATE_ID` = `<TEMPLATE_ID>`
+
+### Self-hosted Runner (Homelab)
+
+In GitHub:
+Settings -> Actions -> Runners -> New self-hosted runner
+
+Follow Github's instructions on the VM.
+
+Recommended (service mode):
+
+```bash
+sudo ./svc.sh install
+sudo ./svc.sh start
+sudo ./svc.sh status
+```
+
+Runner should appear as <strong>Idle</strong> in Github.
+
+### Workflow
+
+Create:
+
+`.github/workflows/semaphore-cd.yml`
+
+
