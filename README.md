@@ -224,7 +224,7 @@ Then:
 <strong>Goal:</strong> Ensure the playbook itself works <strong>before running it in Semaphore</strong>.
 
 ```bash
-ansible-playbook -i inventories/ssh.ini debian-based/system_administration/update.yml
+ansible-playbook -i inventories/ssh.ini debian-based/system_administration/system_update.yml.yml
 ```
 
 Expected result:
