@@ -1,0 +1,63 @@
+name: Trigger Semaphore
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch: {}
+
+jobs:
+  trigger:
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Trigger Semaphore task (fail-fast)
+        shell: bash
+        env:
+          SEMAPHORE_URL: ${{ secrets.SEMAPHORE_URL }}
+          SEMAPHORE_TOKEN: ${{ secrets.SEMAPHORE_TOKEN }}
+          PROJECT_ID: ${{ secrets.SEMAPHORE_PROJECT_ID }}
+          TEMPLATE_ID: ${{ secrets.SEMAPHORE_TEMPLATE_ID }}
+        run: |
+          set -euo pipefail
+
+          echo "SEMAPHORE_URL=${SEMAPHORE_URL}"
+          echo "PROJECT_ID=${PROJECT_ID}"
+          echo "TEMPLATE_ID=${TEMPLATE_ID}"
+          echo "SEMAPHORE_TOKEN_LEN=${#SEMAPHORE_TOKEN}"
+
+          echo "Checking Semaphore auth..."
+          auth_code="$(curl -sS -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${SEMAPHORE_TOKEN}" \
+            -H "Accept: application/json" \
+            "${SEMAPHORE_URL}/api/projects" || true)"
+
+          echo "Auth HTTP=${auth_code}"
+          if [[ "${auth_code}" != "200" ]]; then
+            echo "ERROR: Semaphore auth failed (expected 200)."
+            echo "Hint: 401/403=token wrong; 000=network; 404=url/path wrong"
+            exit 1
+          fi
+
+          echo "Creating Semaphore task..."
+          resp_headers="$(mktemp)"
+          resp_body="$(mktemp)"
+
+          http="$(curl -sS -D "$resp_headers" -o "$resp_body" -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${SEMAPHORE_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json" \
+            -d "{\"template_id\": ${TEMPLATE_ID}}" \
+            "${SEMAPHORE_URL}/api/project/${PROJECT_ID}/tasks")"
+
+          echo "Create task HTTP=${http}"
+          if [[ "${http}" != "201" ]]; then
+            echo "---- Headers ----"
+            cat "$resp_headers" || true
+            echo "---- Body ----"
+            cat "$resp_body" || true
+            exit 1
+          fi
+
+          echo "Task created successfully:"
+          cat "$resp_body"
