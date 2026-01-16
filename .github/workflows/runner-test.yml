@@ -1,16 +1,50 @@
-name: devops
+name: Deploy via Semaphore
 
 on:
+  push:
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
-  test:
+  trigger:
     runs-on: [self-hosted, Linux, X64]
     steps:
-      - name: Show runner info
+      - name: Create Semaphore task (fail-fast)
+        env:
+          SEMAPHORE_URL: ${{ secrets.SEMAPHORE_URL }}
+          SEMAPHORE_TOKEN: ${{ secrets.SEMAPHORE_TOKEN }}
+          PROJECT_ID: ${{ secrets.SEMAPHORE_PROJECT_ID }}
+          TEMPLATE_ID: ${{ secrets.SEMAPHORE_TEMPLATE_ID }}
         run: |
-          hostname
-          whoami
-          uname -a
-          docker --version || true
-          curl --version
+          set -euo pipefail
+
+          echo "Checking Semaphore API reachability..."
+          curl -fsS -o /dev/null "${SEMAPHORE_URL}/api/projects" || {
+            echo "ERROR: Semaphore API not reachable at ${SEMAPHORE_URL}"
+            exit 1
+          }
+
+          echo "Triggering template_id=${TEMPLATE_ID} in project_id=${PROJECT_ID}..."
+          http_code="$(curl -sS -o resp.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${SEMAPHORE_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/json" \
+            -d "{\"template_id\": ${TEMPLATE_ID}}" \
+            "${SEMAPHORE_URL}/api/project/${PROJECT_ID}/tasks")"
+
+          echo "HTTP=${http_code}"
+          cat resp.json || true
+
+          if [ "${http_code}" != "201" ]; then
+            echo "ERROR: Semaphore did not create the task (expected 201)."
+            exit 1
+          fi
+
+          task_id="$(jq -r '.id // empty' resp.json)"
+          if [ -z "${task_id}" ]; then
+            echo "ERROR: No task id returned by Semaphore."
+            exit 1
+          fi
+
+          echo "Task created successfully: id=${task_id}"
