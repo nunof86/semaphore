@@ -1,4 +1,4 @@
-name: Deploy via Semaphore teste2
+name: Deploy via Semaphore
 
 on:
   push:
@@ -7,34 +7,12 @@ on:
 
 jobs:
   trigger:
+    # Se estás a usar self-hosted runner (homelab), mantém assim.
+    # Se quiseres testar em GitHub-hosted, muda para: ubuntu-latest
     runs-on: [self-hosted, Linux, X64]
 
     steps:
-      # 🔎 STEP 1 — DEBUG (temporário)
-      - name: Check Semaphore auth (debug)
-        shell: bash
-        env:
-          SEMAPHORE_URL: ${{ secrets.SEMAPHORE_URL }}
-          SEMAPHORE_TOKEN: ${{ secrets.SEMAPHORE_TOKEN }}
-        run: |
-          set -euo pipefail
-
-          echo "SEMAPHORE_URL=${SEMAPHORE_URL}"
-          echo "SEMAPHORE_TOKEN_LEN=${#SEMAPHORE_TOKEN}"
-
-          code="$(curl -sS -o /dev/null -w "%{http_code}" \
-            -H "Authorization: Bearer ${SEMAPHORE_TOKEN}" \
-            -H "Accept: application/json" \
-            "${SEMAPHORE_URL}/api/projects")"
-
-          echo "HTTP=${code}"
-          if [[ "${code}" != "200" ]]; then
-            echo "ERROR: Semaphore auth failed"
-            exit 1
-          fi
-
-      # 🚀 STEP 2 — CREATE TASK (normal)
-      - name: Create Semaphore task
+      - name: Create Semaphore task (fail-fast)
         shell: bash
         env:
           SEMAPHORE_URL: ${{ secrets.SEMAPHORE_URL }}
@@ -44,9 +22,54 @@ jobs:
         run: |
           set -euo pipefail
 
-          curl -sS -L -X POST \
+          echo "SEMAPHORE_URL=${SEMAPHORE_URL}"
+          echo "PROJECT_ID=${PROJECT_ID}"
+          echo "TEMPLATE_ID=${TEMPLATE_ID}"
+          echo "SEMAPHORE_TOKEN_LEN=${#SEMAPHORE_TOKEN}"
+
+          # 1) Check API reachability (no auth) - optional but helpful
+          #    If your Semaphore requires auth for everything, this may return 401 which is OK.
+          echo "Checking Semaphore API reachability..."
+          reach_code="$(curl -sS -o /dev/null -w "%{http_code}" \
+            "${SEMAPHORE_URL}/api/projects" || true)"
+          echo "Reachability HTTP=${reach_code}"
+
+          # 2) Check authentication (must be 200)
+          echo "Checking Semaphore API authentication..."
+          auth_code="$(curl -sS -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${SEMAPHORE_TOKEN}" \
+            -H "Accept: application/json" \
+            "${SEMAPHORE_URL}/api/projects" || true)"
+          echo "Auth HTTP=${auth_code}"
+
+          if [[ "${auth_code}" != "200" ]]; then
+            echo "ERROR: /api/projects returned HTTP=${auth_code}"
+            echo "Hint: 401/403=token wrong/permissions; 000=network; 404=url/path wrong"
+            exit 1
+          fi
+
+          # 3) Create task
+          echo "Creating Semaphore task..."
+          create_resp="$(curl -sS -i -X POST \
             -H "Authorization: Bearer ${SEMAPHORE_TOKEN}" \
             -H "Content-Type: application/json" \
             -H "Accept: application/json" \
             -d "{\"template_id\": ${TEMPLATE_ID}}" \
-            "${SEMAPHORE_URL}/api/project/${PROJECT_ID}/tasks"
+            "${SEMAPHORE_URL}/api/project/${PROJECT_ID}/tasks")"
+
+          echo "${create_resp}" | head -n 20
+
+          # 4) Ensure we got 201 Created and a task id
+          http_line="$(echo "${create_resp}" | head -n 1)"
+          if ! echo "${http_line}" | grep -q " 201 "; then
+            echo "ERROR: Expected HTTP 201 from task creation, got: ${http_line}"
+            exit 1
+          fi
+
+          task_id="$(echo "${create_resp}" | tail -n 1 | sed -n 's/.*"id":\([0-9]\+\).*/\1/p' | head -n 1)"
+          if [[ -z "${task_id}" ]]; then
+            echo "ERROR: Could not parse task id from response body"
+            exit 1
+          fi
+
+          echo "Semaphore task created successfully. TASK_ID=${task_id}"
