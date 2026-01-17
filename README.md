@@ -342,12 +342,12 @@ Expected result:
 - Semaphore -> new task visible and executed
 - Playbook runs exactly as tested locally
 
-#### Common Failures
+#### Common Failures:
 
-401/403 -> Wrong token in GitHub Secrets
-404 -> Wrong URL or missing `http://`
-Runner idle -> Workflow misconfigured
-Semaphore task unreachable -> SSH/sudo not validated locally
+- 401/403 -> Wrong token in GitHub Secrets
+- 404 -> Wrong URL or missing `http://`
+- Runner idle -> Workflow misconfigured
+- Semaphore task unreachable -> SSH/sudo not validated locally
 
 
 ## Final Commit and CI/CD Validation
